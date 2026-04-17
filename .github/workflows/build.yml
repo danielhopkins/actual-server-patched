@@ -36,14 +36,17 @@ jobs:
             echo "Failed to resolve upstream tag" >&2
             exit 1
           fi
-          echo "upstream_tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "Building against upstream $TAG"
+          # GitHub release tags use "vX.Y.Z", Docker Hub tags use "X.Y.Z"
+          IMAGE_TAG="${TAG#v}"
+          echo "upstream_git_tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "upstream_image_tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          echo "Building against upstream git tag $TAG / Docker Hub tag $IMAGE_TAG"
 
       - name: Check if image already exists
         id: existing
         if: github.event_name == 'schedule'
         run: |
-          TAG="${{ steps.tag.outputs.upstream_tag }}"
+          TAG="${{ steps.tag.outputs.upstream_git_tag }}"
           TOKEN=$(echo -n "${{ secrets.GITHUB_TOKEN }}" | base64 -w0)
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             -H "Authorization: Bearer $TOKEN" \
@@ -79,9 +82,10 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            UPSTREAM_TAG=${{ steps.tag.outputs.upstream_tag }}
+            UPSTREAM_GIT_TAG=${{ steps.tag.outputs.upstream_git_tag }}
+            UPSTREAM_IMAGE_TAG=${{ steps.tag.outputs.upstream_image_tag }}
           tags: |
-            ${{ env.IMAGE }}:${{ steps.tag.outputs.upstream_tag }}
+            ${{ env.IMAGE }}:${{ steps.tag.outputs.upstream_git_tag }}
             ${{ env.IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

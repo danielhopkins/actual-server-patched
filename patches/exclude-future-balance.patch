@@ -1,0 +1,53 @@
+diff --git a/packages/desktop-client/src/spreadsheet/bindings.ts b/packages/desktop-client/src/spreadsheet/bindings.ts
+index 8530799..5c8222d 100644
+--- a/packages/desktop-client/src/spreadsheet/bindings.ts
++++ b/packages/desktop-client/src/spreadsheet/bindings.ts
+@@ -1,3 +1,4 @@
++import { currentDay } from 'loot-core/shared/months';
+ import { q } from 'loot-core/shared/query';
+ import type { AccountEntity, CategoryEntity } from 'loot-core/types/models';
+ 
+@@ -20,7 +21,7 @@ export function accountBalance(accountId: AccountEntity['id']) {
+   return {
+     name: accountParametrizedField('balance')(accountId),
+     query: q('transactions')
+-      .filter({ account: accountId })
++      .filter({ account: accountId, date: { $lte: currentDay() } })
+       .options({ splits: 'none' })
+       .calculate({ $sum: '$amount' }),
+   } satisfies Binding<'account', 'balance'>;
+@@ -49,7 +50,7 @@ export function accountBalanceUncleared(accountId: AccountEntity['id']) {
+ export function allAccountBalance() {
+   return {
+     query: q('transactions')
+-      .filter({ 'account.closed': false })
++      .filter({ 'account.closed': false, date: { $lte: currentDay() } })
+       .calculate({ $sum: '$amount' }),
+     name: 'accounts-balance',
+   } satisfies Binding<'account', 'accounts-balance'>;
+@@ -59,7 +60,11 @@ export function onBudgetAccountBalance() {
+   return {
+     name: `onbudget-accounts-balance`,
+     query: q('transactions')
+-      .filter({ 'account.offbudget': false, 'account.closed': false })
++      .filter({
++        'account.offbudget': false,
++        'account.closed': false,
++        date: { $lte: currentDay() },
++      })
+       .calculate({ $sum: '$amount' }),
+   } satisfies Binding<'account', 'onbudget-accounts-balance'>;
+ }
+@@ -68,7 +73,11 @@ export function offBudgetAccountBalance() {
+   return {
+     name: `offbudget-accounts-balance`,
+     query: q('transactions')
+-      .filter({ 'account.offbudget': true, 'account.closed': false })
++      .filter({
++        'account.offbudget': true,
++        'account.closed': false,
++        date: { $lte: currentDay() },
++      })
+       .calculate({ $sum: '$amount' }),
+   } satisfies Binding<'account', 'offbudget-accounts-balance'>;
+ }

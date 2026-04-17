@@ -1,7 +1,7 @@
 ARG UPSTREAM_GIT_TAG=v26.4.0
 ARG UPSTREAM_IMAGE_TAG=26.4.0
 
-FROM node:22-alpine AS builder
+FROM --platform=$BUILDPLATFORM node:22-alpine AS builder
 RUN apk add --no-cache python3 openssl build-base git && corepack enable
 WORKDIR /src
 

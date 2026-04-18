@@ -1,3 +1,18 @@
+diff --git a/packages/desktop-client/src/components/accounts/Account.tsx b/packages/desktop-client/src/components/accounts/Account.tsx
+index 327b5b8..6ae63d5 100644
+--- a/packages/desktop-client/src/components/accounts/Account.tsx
++++ b/packages/desktop-client/src/components/accounts/Account.tsx
+@@ -920,7 +920,9 @@ class AccountInternal extends PureComponent<
+   getBalanceQuery(id?: string) {
+     return {
+       name: `balance-query-${id}`,
+-      query: this.makeRootTransactionsQuery().calculate({ $sum: '$amount' }),
++      query: this.makeRootTransactionsQuery()
++        .filter({ date: { $lte: currentDay() } })
++        .calculate({ $sum: '$amount' }),
+     } as const;
+   }
+ 
 diff --git a/packages/desktop-client/src/spreadsheet/bindings.ts b/packages/desktop-client/src/spreadsheet/bindings.ts
 index 8530799..5c8222d 100644
 --- a/packages/desktop-client/src/spreadsheet/bindings.ts
